@@ -1,0 +1,429 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organizer Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Full-screen loader styles */
+    #loaderOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #6366f1;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-900 text-white p-6">
+  <!-- Loader Overlay -->
+  <div id="loaderOverlay"><div class="spinner"></div></div>
+
+  <div class="max-w-6xl mx-auto">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold">Organizer Dashboard</h1>
+      <div class="flex items-center gap-2">
+       
+        <!-- View Candidates Button -->
+        <button id="viewCandidatesBtn" class="px-3 py-2 bg-yellow-500 rounded hidden">
+          View Candidates
+        </button>
+        <button id="logout" class="px-3 py-2 bg-rose-500 rounded">Logout</button>
+        
+        <!-- Add Image Button -->
+        <button id="openGallery" class="mt-2 px-4 py-2 bg-green-500 rounded hover:bg-green-400">
+          Go to Gallery
+        </button>
+        <button id="viewContactBtn" class="px-3 py-2 bg-cyan-500 rounded hidden">
+          View Contacts
+        </button>
+        <input type="file" id="galleryUpload" accept="image/*" class="hidden" />
+      </div>
+    </header>
+
+    <!-- Events Section -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="p-4 bg-white/5 rounded-lg">
+        <h3 class="font-semibold mb-2">Create Event</h3>
+        <input id="evName" placeholder="Event name" class="w-full p-2 rounded bg-white/6 mb-2 text-black"/>
+        <input id="evEnd" type="date" class="w-full p-2 rounded bg-white/6 mb-2 text-black"/>
+        <input id="evAmount" type="number" placeholder="Entry amount (₹)" class="w-full p-2 rounded bg-white/6 mb-2 text-black"/>
+        <textarea id="evDesc" placeholder="Description" class="w-full p-2 rounded bg-white/6 mb-2 text-black"></textarea>
+        <button id="createEvent" class="px-4 py-2 bg-indigo-500 rounded">Create</button>
+        <div id="evMsg" class="text-sm mt-2"></div>
+      </div>
+      
+
+      <div class="p-4 bg-white/5 rounded-lg md:col-span-2">
+        <div class="flex items-center gap-3 mb-4">
+          <select id="eventsSelect" class="p-2 bg-white/6 rounded w-1/2 text-black"></select>
+          <button id="refreshEvents" class="px-3 py-2 bg-white/10 rounded">Refresh</button>
+          <button id="deleteEventBtn" class="px-3 py-2 bg-rose-500 rounded">Delete Event</button>
+          <button id="loadParticipants" class="px-3 py-2 bg-indigo-500 rounded">Load Participants</button>
+        </div>
+        <div id="participantsContainerWrapper" class="overflow-y-auto border border-white/20 rounded" style="max-height: 360px;">
+          <div id="participantsContainer" class="flex flex-col"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Add Participant Section -->
+    <section class="mt-6 p-4 bg-white/5 rounded-lg">
+      <h3 class="font-semibold mb-2">Add Participant (Organizer)</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input id="pName" placeholder="Name" class="p-2 rounded bg-white/6 text-black" />
+        <input id="pFather" placeholder="Father's name" class="p-2 rounded bg-white/6 text-black" />
+        <input id="pMother" placeholder="Mother's name" class="p-2 rounded bg-white/6 text-black" />
+        <select id="pGender" class="p-2 rounded bg-white/6 text-black">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="pEmail" placeholder="Email" class="p-2 rounded bg-white/6 text-black" />
+        <input id="pPhone" placeholder="Phone" class="p-2 rounded bg-white/6 text-black" />
+        <input id="pLang" placeholder="Preferred Language" class="p-2 rounded bg-white/6 text-black" />
+        <select id="pEvent" class="p-2 rounded bg-white/6 text-black"></select>
+        <div><button id="addParticipant" class="px-4 py-2 bg-green-500 rounded">Add Participant</button></div>
+      </div>
+      <div id="addMsg" class="mt-2"></div>
+    </section>
+
+    <!-- Add Volunteer Section -->
+    <section class="mt-6 p-4 bg-white/5 rounded-lg">
+      <h3 class="font-semibold mb-2">Add Volunteer</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input id="vName" placeholder="Full Name" class="p-2 rounded bg-white/6 text-black" />
+        <input id="vEmail" placeholder="Email" class="p-2 rounded bg-white/6 text-black" />
+        <input id="vPhone" placeholder="Phone" class="p-2 rounded bg-white/6 text-black" />
+        <input id="vUsername" placeholder="Username (6 chars)" class="p-2 rounded bg-white/6 text-black" />
+        <input id="vPassword" type="password" placeholder="Password" class="p-2 rounded bg-white/6 text-black" />
+        <div>
+          <button id="addVolunteer" class="px-4 py-2 bg-green-500 rounded">Add Volunteer</button>
+        </div>
+      </div>
+      <div id="volMsg" class="mt-2 text-sm text-green-300"></div>
+    </section>
+
+    <!-- Add Organizer Section -->
+    <section class="mt-6 p-4 bg-white/5 rounded-lg">
+      <h3 class="font-semibold mb-2">Add Organizer</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input id="oName" placeholder="Full Name" class="p-2 rounded bg-white/6 text-black" />
+        <input id="oEmail" placeholder="Email" class="p-2 rounded bg-white/6 text-black" />
+        <input id="oPhone" placeholder="Phone" class="p-2 rounded bg-white/6 text-black" />
+        <input id="oUsername" placeholder="Username (8 chars)" class="p-2 rounded bg-white/6 text-black" />
+        <input id="oPassword" type="password" placeholder="Password" class="p-2 rounded bg-white/6 text-black" />
+        <div>
+          <button id="addOrganizer" class="px-4 py-2 bg-blue-500 rounded">Add Organizer</button>
+        </div>
+      </div>
+      <div id="orgMsg" class="mt-2 text-sm text-green-300"></div>
+    </section>
+
+    <!-- Verify Participant & Allocate PC -->
+    <section class="mt-6 p-4 bg-white/5 rounded-lg">
+      <h3 class="font-semibold mb-2">Verify Participant & Allocate PC</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+        <input id="verifyCode" placeholder="Participant Code" class="p-2 rounded bg-white/6 text-black" />
+        <select id="verifyEvent" class="p-2 rounded bg-white/6"></select>
+        <button id="verifyAllocate" class="px-4 py-2 bg-indigo-500 rounded">Allocate PC</button>
+      </div>
+      <div id="verifyMsg" class="mt-2 text-sm text-rose-300"></div>
+    </section>
+  </div>
+
+
+<script>
+(async function(){
+  const token = localStorage.getItem("techathon_token");
+  if(!token){ location.href="../login.html"; return; }
+  const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
+  const loader = document.getElementById("loaderOverlay");
+
+  // Show/Hide loader helpers
+  const showLoader = ()=>loader.style.display="flex";
+  const hideLoader = ()=>loader.style.display="none";
+
+  document.getElementById("logout").addEventListener("click", ()=>{ localStorage.removeItem("techathon_token"); location.href="../login.html"; });
+
+  async function fetchEvents(){
+    showLoader();
+    try {
+      const res = await fetch("https://backend-hdnh.onrender.com/api/events", { headers });
+      const data = await res.json();
+      if(!data.ok) return alert("Failed to load events");
+
+      const sel = document.getElementById("eventsSelect"); sel.innerHTML="";
+      const sel2 = document.getElementById("pEvent"); sel2.innerHTML="";
+      const verifySel = document.getElementById("verifyEvent"); verifySel.innerHTML="";
+
+      data.events.forEach(ev=>{
+        const opt = document.createElement("option");
+        opt.value=ev.id;
+        opt.textContent=ev.name+" (ends: "+new Date(ev.end_date).toLocaleDateString()+")";
+        sel.appendChild(opt);
+        sel2.appendChild(opt.cloneNode(true));
+        verifySel.appendChild(opt.cloneNode(true));
+      });
+    } catch(e){ console.error(e); }
+    finally{ hideLoader(); }
+  }
+  await fetchEvents();
+
+  // Helper for API calls with loader
+  async function callApi(url, options){ showLoader(); try{ const res = await fetch(url, options); const data = await res.json(); return { res, data }; } catch(e){ console.error(e); return {}; } finally{ hideLoader(); } }
+
+  // Create Event
+  // Create Event
+document.getElementById("createEvent").addEventListener("click", async ()=>{
+  const name = document.getElementById("evName").value.trim();
+  const end = document.getElementById("evEnd").value;
+  const amount = Number(document.getElementById("evAmount").value);
+  const desc = document.getElementById("evDesc").value.trim();
+  const msgEl = document.getElementById("evMsg"); 
+  msgEl.textContent="";
+
+  if(!name || !end) return msgEl.textContent="Name & end date required";
+  if(!amount || amount <= 0) return msgEl.textContent="Valid entry amount required";
+  if( amount > 300) return msgEl.textContent="Entry amount is too High";
+
+
+  const {res,data} = await callApi("https://backend-hdnh.onrender.com/api/events",{
+    method:"POST",
+    headers,
+    body: JSON.stringify({
+      name,
+      description: desc,
+      endDate: end,
+      amount   // ⬅️ send entry fee
+    })
+  });
+
+  if(!res.ok || !data.ok){ 
+    msgEl.textContent=data.message || "Failed"; 
+    return; 
+  }
+  msgEl.textContent="Event created";
+  await fetchEvents();
+});
+
+
+  // Delete Event
+  document.getElementById("deleteEventBtn").addEventListener("click", async ()=>{
+    const eventId=document.getElementById("eventsSelect").value;
+    if(!eventId) return alert("Select event");
+    if(!confirm("Delete this event & all participants?")) return;
+    const {res,data}=await callApi(`https://backend-hdnh.onrender.com/api/events/${eventId}`,{ method:"DELETE", headers });
+    if(!res.ok||!data.ok) return alert(data.message||"Failed");
+    alert("Event deleted with participants");
+    await fetchEvents();
+    document.getElementById("participantsContainer").innerHTML="";
+  });
+
+  // Load Participants
+  document.getElementById("loadParticipants").addEventListener("click", async ()=>{
+    const eventId=document.getElementById("eventsSelect").value;
+    if(!eventId) return alert("Select event");
+
+    const {res,data}=await callApi(`https://backend-hdnh.onrender.com/api/events/${eventId}/participants`,{ headers });
+    if(!res.ok||!data.ok) return alert(data.message||"Failed");
+
+    const container=document.getElementById("participantsContainer"); container.innerHTML="";
+    data.participants.forEach(p=>{
+      const div=document.createElement("div");
+      div.className="p-3 bg-white/6 rounded flex items-center justify-between h-[110px]";
+
+      div.innerHTML=`<div>
+        <div class="font-semibold">${p.name} (${p.preferred_language})</div>
+        <div class="text-sm text-slate-300">${p.email} • ${p.phone} • code: <b>${p.code||"—"}</b></div>
+      </div>
+      <div class="flex gap-2">
+        <button data-id="${p.id}" class="allocBtn px-3 py-1 bg-indigo-500 rounded">Allocate PC</button>
+        <button data-id="${p.id}" class="delPartBtn px-3 py-1 bg-rose-500 rounded">Delete</button>
+      </div>`;
+      container.appendChild(div);
+    });
+
+    // Allocate PC
+    document.querySelectorAll(".allocBtn").forEach(btn=>{
+      btn.addEventListener("click", async e=>{
+        const id=e.target.dataset.id;
+        const {res,data}=await callApi("https://backend-hdnh.onrender.com/api/organizer/allocate",{ method:"POST", headers, body:JSON.stringify({participantId:Number(id)}) });
+        if(!res.ok||!data.ok) return alert(data.message||"Failed");
+        alert("PC allocated: "+data.pc);
+        document.getElementById("loadParticipants").click();
+      });
+    });
+
+    // Delete Participant
+    document.querySelectorAll(".delPartBtn").forEach(btn=>{
+      btn.addEventListener("click", async e=>{
+        const id=e.target.dataset.id;
+        if(!confirm("Delete this participant?")) return;
+        const {res,data}=await callApi(`https://backend-hdnh.onrender.com/api/participants/${id}`,{ method:"DELETE", headers });
+        if(!res.ok||!data.ok) return alert(data.message||"Failed");
+        alert("Participant deleted");
+        document.getElementById("loadParticipants").click();
+      });
+    });
+  });
+
+  // Add Participant
+  document.getElementById("addParticipant").addEventListener("click", async ()=>{
+    const body={
+      eventId:Number(document.getElementById("pEvent").value),
+      name:document.getElementById("pName").value.trim(),
+      fatherName:document.getElementById("pFather").value.trim(),
+      motherName:document.getElementById("pMother").value.trim(),
+      gender:document.getElementById("pGender").value,
+      email:document.getElementById("pEmail").value.trim(),
+      phone:document.getElementById("pPhone").value.trim(),
+      preferredLanguage:document.getElementById("pLang").value.trim()
+    };
+    const msg=document.getElementById("addMsg"); msg.textContent="";
+    const {res,data}=await callApi("https://backend-hdnh.onrender.com/api/organizer/participant",{ method:"POST", headers, body:JSON.stringify(body) });
+    if(!res.ok||!data.ok){ msg.textContent=data.message||"Failed"; return; }
+    msg.textContent="Participant added. Code: "+data.participant.code;
+  });
+
+  // Add Volunteer
+  document.getElementById("addVolunteer").addEventListener("click", async ()=>{
+    const body={
+      name:document.getElementById("vName").value.trim(),
+      email:document.getElementById("vEmail").value.trim(),
+      phone:document.getElementById("vPhone").value.trim(),
+      username:document.getElementById("vUsername").value.trim(),
+      password:document.getElementById("vPassword").value
+    };
+    const msg=document.getElementById("volMsg"); msg.textContent="";
+    if(!body.name||!body.email||!body.phone||!body.username||!body.password){ msg.textContent="All fields required"; return; }
+    if(body.username.length!==6){ msg.textContent="Username must be 6 chars"; return; }
+
+    const {res,data}=await callApi("https://backend-hdnh.onrender.com/api/organizer/volunteer",{ method:"POST", headers, body:JSON.stringify(body) });
+    if(!res.ok||!data.ok){ msg.textContent=data.message||"Failed"; return; }
+    msg.textContent="Volunteer added successfully";
+  });
+
+  // Verify & Allocate
+  const verifyCodeEl=document.getElementById("verifyCode");
+  const verifyEventEl=document.getElementById("verifyEvent");
+  const verifyMsg=document.getElementById("verifyMsg");
+  document.getElementById("verifyAllocate").addEventListener("click", async ()=>{
+    const code=verifyCodeEl.value.trim();
+    const eventId=verifyEventEl.value;
+    verifyMsg.textContent="";
+    if(!code||!eventId){ verifyMsg.textContent="Enter code & select event"; return; }
+
+    const {res,data}=await callApi("https://backend-hdnh.onrender.com/api/organizer/verify-allocate",{ method:"POST", headers, body:JSON.stringify({ code, eventId:Number(eventId) }) });
+    if(!res.ok||!data.ok){ verifyMsg.textContent=data.message||"Failed"; return; }
+    verifyMsg.textContent="PC allocated successfully: "+data.pc;
+    verifyCodeEl.value="";
+  });
+  document.getElementById("addOrganizer").addEventListener("click", async ()=>{
+  const body = {
+    name: document.getElementById("oName").value.trim(),
+    email: document.getElementById("oEmail").value.trim(),
+    phone: document.getElementById("oPhone").value.trim(),
+    username: document.getElementById("oUsername").value.trim(),
+    password: document.getElementById("oPassword").value
+  };
+  const msg = document.getElementById("orgMsg"); 
+  msg.textContent = "";
+
+  if(!body.name || !body.email || !body.phone || !body.username || !body.password){
+    msg.textContent = "All fields required"; 
+    return;
+  }
+  if(body.username.length !== 8){
+    msg.textContent = "Username must be 8 chars"; 
+    return;
+  }
+
+  const {res,data} = await callApi("https://backend-hdnh.onrender.com/api/admin/organizer",{
+    method:"POST",
+    headers,
+    body: JSON.stringify(body)
+  });
+
+  if(!res.ok || !data.ok){ msg.textContent=data.message || "Failed"; return; }
+  msg.textContent="Organizer added successfully!";
+});
+// Gallery Upload
+// Upload Gallery Image
+document.getElementById("galleryUpload").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const eventId = document.getElementById("eventsSelect").value;
+  if (!eventId) {
+    alert("Please select an event before uploading an image.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  showLoader();
+  try {
+    const res = await fetch(`https://backend-hdnh.onrender.com/api/organizer/gallery/${eventId}`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + techathon_token // ⬅️ keep token for auth
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      alert(data.message || "Upload failed");
+    } else {
+      alert("Image uploaded successfully!");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Error uploading image");
+  } finally {
+    hideLoader();
+    e.target.value = ""; // reset input so same file can be re-uploaded
+  }
+});
+
+    // ✅ Profile fetch to control "View Candidates"
+    let currentUser = null;
+  const btn = document.getElementById("viewCandidatesBtn");
+
+  // Show button (for now always visible, or you can add logic based on profile)
+  btn.classList.remove("hidden");
+
+  btn.addEventListener("click", () => location.href = "candidates.html");
+  document.getElementById("openGallery").addEventListener("click", () => {
+  const eventId = document.getElementById("eventsSelect").value;
+  if (!eventId) return alert("Select an event first!");
+  window.location.href = `gallery.html?eventId=${eventId}`;
+});
+
+const btnContact = document.getElementById("viewContactBtn");
+btnContact.classList.remove("hidden");  // <--- show it
+btnContact.addEventListener("click", () => location.href = "contactus.html");
+
+})();
+// Add Organizer
+</script>
+</body>
+</html>

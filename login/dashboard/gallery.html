@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gallery Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Cropper.js CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+  <style>
+    /* Loader */
+    #loaderOverlay {
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.6);
+      display:flex; justify-content:center; align-items:center;
+      z-index:1000; display:none;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #4ade80;
+      border-radius: 50%;
+      width: 50px; height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Fixed area for canvas & preview */
+    #cropCanvas, #previewImage {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      margin: auto;
+      display: block;
+      border-radius: 0.5rem;
+      border: 1px solid #4ade80;
+      object-fit: contain;
+      background-color: #333;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+
+  <!-- Loader -->
+  <div id="loaderOverlay"><div class="spinner"></div></div>
+
+  <div class="max-w-3xl mx-auto bg-gray-800 p-8 rounded-xl shadow-lg">
+    <h1 class="text-4xl font-bold mb-6 text-center text-green-400">Upload Gallery Image</h1>
+
+    <form id="galleryForm" class="space-y-6">
+
+      <!-- Event Select -->
+      <div>
+        <label class="block mb-2 font-semibold">Select Event</label>
+        <select id="eventSelect" class="w-full p-3 rounded bg-gray-700 text-white"></select>
+      </div>
+
+      <!-- Image Input -->
+      <div>
+        <label class="block mb-2 font-semibold">Select Image</label>
+        <input type="file" id="imageInput" accept="image/*" class="w-full p-2 rounded bg-gray-700" />
+      </div>
+
+      <!-- Cropper Canvas -->
+      <div id="cropperWrapper" class="hidden text-center">
+        <canvas id="cropCanvas"></canvas>
+        <button type="button" id="cropBtn" class="mt-4 px-5 py-2 bg-indigo-500 rounded hover:bg-indigo-400 transition">Crop & Preview</button>
+      </div>
+
+      <!-- Cropped Preview -->
+      <div class="text-center mt-4">
+        <img id="previewImage" alt="Cropped Preview" />
+      </div>
+
+      <!-- Image Description -->
+      <div>
+        <label class="block mb-2 font-semibold">Image Description</label>
+        <textarea id="imageDesc" placeholder="Add a description..." class="w-full p-3 rounded bg-gray-700 text-white"></textarea>
+      </div>
+
+      <!-- Submit -->
+      <div class="text-center">
+        <button type="submit" class="px-6 py-3 bg-green-500 rounded hover:bg-green-400 text-lg font-semibold transition">Upload Image</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Cropper.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script>
+    const loader = document.getElementById("loaderOverlay");
+    const showLoader = () => loader.style.display = "flex";
+    const hideLoader = () => loader.style.display = "none";
+
+    const token = localStorage.getItem("techathon_token");
+    const headers = { Authorization: "Bearer " + token };
+
+    // Load events
+    async function loadEvents() {
+      showLoader();
+      try {
+        const res = await fetch("https://backend-hdnh.onrender.com/api/events", { headers });
+        const data = await res.json();
+        const select = document.getElementById("eventSelect");
+        select.innerHTML = "";
+        data.events.forEach(ev => {
+          const opt = document.createElement("option");
+          opt.value = ev.id;
+          opt.textContent = `${ev.name} (ends: ${new Date(ev.end_date).toLocaleDateString()})`;
+          select.appendChild(opt);
+        });
+      } catch (err) { console.error(err); alert("Failed to load events"); }
+      finally { hideLoader(); }
+    }
+    loadEvents();
+
+    // Cropper logic
+    const imageInput = document.getElementById("imageInput");
+    const cropperWrapper = document.getElementById("cropperWrapper");
+    const cropCanvas = document.getElementById("cropCanvas");
+    const previewImage = document.getElementById("previewImage");
+    let cropperInstance, croppedBlob;
+
+    imageInput.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        cropperWrapper.classList.remove("hidden");
+
+        // Destroy previous cropper
+        if (cropperInstance) cropperInstance.destroy();
+
+        const ctx = cropCanvas.getContext("2d");
+        const img = new Image();
+        img.onload = () => {
+          // Fixed canvas size
+          cropCanvas.width = 600;
+          cropCanvas.height = 300;
+          ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+
+          // Scale image to fit canvas
+          const scale = Math.min(cropCanvas.width / img.width, cropCanvas.height / img.height);
+          const x = (cropCanvas.width - img.width * scale)/2;
+          const y = (cropCanvas.height - img.height * scale)/2;
+          ctx.drawImage(img, 0, 0, img.width, img.height, x, y, img.width*scale, img.height*scale);
+
+          // Initialize Cropper.js
+          cropperInstance = new Cropper(cropCanvas, {
+            aspectRatio: 16/9,
+            viewMode: 1,
+            background: false,
+            autoCropArea: 1,
+            dragMode: 'move'
+          });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("cropBtn").addEventListener("click", () => {
+      if (!cropperInstance) return alert("Select image first!");
+
+      cropperInstance.getCroppedCanvas({
+        width: 600,
+        height: 300
+      }).toBlob(blob => {
+        croppedBlob = blob;
+        alert("Image cropped! Ready to upload.");
+        previewImage.src = URL.createObjectURL(blob);
+        previewImage.style.display = "block";
+      }, "image/jpeg");
+    });
+
+    // Upload form
+    document.getElementById("galleryForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const eventId = document.getElementById("eventSelect").value;
+      const description = document.getElementById("imageDesc").value.trim();
+
+      if (!eventId || !croppedBlob) return alert("Select event & crop image first");
+
+      const formData = new FormData();
+      formData.append("image", croppedBlob, "gallery.jpg");
+      formData.append("description", description);
+
+      showLoader();
+      try {
+        const res = await fetch(`https://backend-hdnh.onrender.com/api/organizer/gallery/${eventId}`, {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+          body: formData
+        });
+        const data = await res.json();
+        alert("Image uploaded successfully!");
+
+        // Reset form & preview
+        document.getElementById("galleryForm").reset();
+        cropperWrapper.classList.add("hidden");
+        previewImage.style.display = "none";
+      } catch (err) {
+        console.error(err);
+        alert("Upload error");
+      } finally { hideLoader(); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Luxury Event Gallery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(circle at top left,#0f172a,#1e293b);
+      font-family: 'Poppins', sans-serif;
+    }
+    .gallery-item {
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      cursor: pointer;
+    }
+    .gallery-item:hover {
+      transform: scale(1.05) rotate(1deg);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    }
+    .lux-title {
+      background: linear-gradient(to right,#34d399,#3b82f6,#f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gallery-description {
+      background: rgba(15,23,42,0.7);
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      color: #f0f0f0;
+      text-align: center;
+    }
+
+    /* Fullscreen loader */
+    .fullscreen-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15,23,42,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      flex-direction: column;
+    }
+    .spinner {
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top: 6px solid #34d399;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loader-text {
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+
+  <!-- Fullscreen Loader -->
+  <div id="fullscreenLoader" class="fullscreen-loader" style="display: none;">
+    <div class="spinner"></div>
+    <div class="loader-text">Loading...</div>
+  </div>
+
+  <div class="max-w-7xl mx-auto p-6">
+    <h1 class="text-5xl font-extrabold text-center mb-8 lux-title">✨ Event Gallery ✨</h1>
+
+    <div class="flex justify-center mb-8">
+      <div class="overflow-x-auto mb-8">
+        <div id="eventScroller" class="flex space-x-4 px-4 py-2">
+          <!-- Event buttons will be injected here -->
+        </div>
+      </div>
+      
+    </div>
+
+    <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js"></script>
+  <script>
+    (async function(){
+      const galleryGrid = document.getElementById("galleryGrid");
+      const eventSelector = document.getElementById("eventSelector");
+      const fullscreenLoader = document.getElementById("fullscreenLoader");
+      const eventScroller = document.getElementById("eventScroller");
+      // Show loader
+      function showLoader() {
+        fullscreenLoader.style.display = "flex";
+      }
+
+      // Hide loader
+      function hideLoader() {
+        fullscreenLoader.style.display = "none";
+      }
+
+      // Load events (no images by default)
+      try {
+        showLoader();
+        const evRes = await fetch("https://backend-hdnh.onrender.com/api/events");
+        const evData = await evRes.json();
+        hideLoader();
+
+      
+
+// Load events (replace dropdown population)
+if(evData.events && evData.events.length > 0){
+  evData.events.forEach(ev => {
+    const btn = document.createElement("button");
+    btn.textContent = ev.name;
+    btn.className = "px-4 py-2 rounded-full bg-gray-700 hover:bg-green-500 hover:text-white transition whitespace-nowrap font-semibold";
+    btn.addEventListener("click", () => {
+      // highlight active
+      document.querySelectorAll("#eventScroller button").forEach(b => b.classList.remove("bg-green-500","text-white"));
+      btn.classList.add("bg-green-500","text-white");
+      loadGallery(ev.id);
+    });
+    eventScroller.appendChild(btn);
+  });
+} else {
+  galleryGrid.innerHTML = "<p class='text-center text-gray-400'>No events available</p>";
+}
+
+        
+      } catch(err) {
+        console.error(err);
+        hideLoader();
+        galleryGrid.innerHTML = "<p class='text-center text-red-400'>Failed to load events</p>";
+      }
+
+      // Load gallery for selected event
+      async function loadGallery(eventId){
+        showLoader();
+        if(!eventId) {
+          galleryGrid.innerHTML = ""; // clear if no event selected
+          hideLoader();
+          return;
+        }
+
+        try {
+          const res = await fetch(`https://backend-hdnh.onrender.com/api/gallery/${eventId}`);
+          const data = await res.json();
+          hideLoader();
+
+          galleryGrid.innerHTML = ""; // clear previous
+
+          if(!data.ok || !data.images){
+            galleryGrid.innerHTML = "<p class='text-center text-red-400'>Failed to load gallery</p>";
+            return;
+          }
+
+          if(data.images.length === 0){
+            galleryGrid.innerHTML = "<p class='text-center text-gray-400'>No images yet</p>";
+            return;
+          }
+
+          data.images.forEach(img => {
+            const div = document.createElement("div");
+            div.className = "gallery-item rounded-xl overflow-hidden shadow-lg bg-gray-800";
+            const imgPath = img.image_path.startsWith("/gallery/") ? img.image_path : `${img.image_path}`;
+            const imgUrl = `https://backend-hdnh.onrender.com${imgPath}`;
+            div.innerHTML = `
+              <a href="${imgUrl}" class="glightbox" data-title="${img.description || 'No description'}">
+                <img src="${imgUrl}" class="w-full h-64 object-cover transition-transform duration-500"/>
+              </a>
+              <div class="gallery-description mt-2">${img.description || 'No description'}</div>
+            `;
+            galleryGrid.appendChild(div);
+          });
+
+          GLightbox({ selector: '.glightbox' });
+        } catch(err) {
+          console.error(err);
+          hideLoader();
+          galleryGrid.innerHTML = "<p class='text-center text-red-400'>Error loading gallery</p>";
+        }
+      }
+
+      eventSelector.addEventListener("change", () => loadGallery(eventSelector.value));
+
+    })();
+  </script>
+
+</body>
+</html>

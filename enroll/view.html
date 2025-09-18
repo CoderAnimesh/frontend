@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quantam Quirks — Events</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+  <style>
+    /* Loader Styles */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.95); /* dark overlay */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .spinner {
+      border: 6px solid rgba(255, 255, 255, 0.2);
+      border-top: 6px solid #6366f1;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-indigo-900 text-white min-h-screen">
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+  </div>
+
+  <header class="p-6 text-center">
+    <h1 class="text-4xl font-extrabold">Upcoming Quantam Quirks Events</h1>
+    <p class="mt-2 text-slate-300">Click "Enroll Now" to join an event before the deadline</p>
+  </header>
+
+  <main class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="eventsContainer">
+    <!-- Events will be dynamically injected here -->
+  </main>
+
+  <script>
+    const container = document.getElementById('eventsContainer');
+    const loader = document.getElementById('loader');
+
+    async function fetchEvents() {
+      try {
+        loader.style.display = "flex"; // show loader
+        const res = await fetch("https://backend-hdnh.onrender.com/api/events");
+        const data = await res.json();
+        loader.style.display = "none"; // hide loader once response arrives
+
+        if (!data.ok) throw new Error(data.message || "Failed to fetch events");
+
+        const now = new Date();
+
+        container.innerHTML = data.events.map(ev => {
+          const endDate = new Date(ev.end_date);
+          const isDeadlinePassed = endDate < now;
+
+          return `
+            <div class="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between">
+              <div>
+                <h2 class="text-3xl font-bold text-indigo-300 text-center">${ev.name}</h2>
+                <p class="mt-2 text-slate-300">${ev.description || 'No description'}</p>
+                <p class="mt-1 text-sm text-slate-400">Deadline: ${endDate.toLocaleDateString()} ${endDate.toLocaleTimeString()}</p>
+              </div>
+              <div class="mt-4">
+                <button 
+                  class="w-full px-4 py-2 rounded-md font-semibold ${isDeadlinePassed ? 'bg-gray-500 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'}"
+                  ${isDeadlinePassed ? 'disabled' : ''}
+                  onclick="enroll(${ev.id})"
+                >
+                  ${isDeadlinePassed ? 'Deadline Passed' : 'Enroll Now'}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        loader.style.display = "none"; // hide loader even on error
+        console.error(err);
+        container.innerHTML = `<p class="col-span-full text-center text-red-400 mt-10">Failed to load events</p>`;
+      }
+    }
+    function enroll(eventId) {
+  // store eventId in localStorage
+  localStorage.setItem("selectedEventId", eventId);
+  window.location.href = `enroll.html`; // ✅ no long query string
+}
+
+
+    fetchEvents();
+  </script>
+</body>
+</html>
