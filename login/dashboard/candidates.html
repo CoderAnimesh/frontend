@@ -125,7 +125,7 @@ const hideLoader = () => loaderOverlay.style.display = "none";
 async function fetchEvents() {
   showLoader();
   try {
-    const res = await fetch("https://backend-hdnh.onrender.com/api/events", { headers });
+    const res = await fetch("https://backend-f64w.onrender.com/api/events", { headers });
     const data = await res.json();
     if (!data.ok) throw new Error("Failed to fetch events");
     eventFilter.innerHTML = "";
@@ -152,7 +152,7 @@ async function loadCandidates() {
   tableWrapper.classList.add("hidden");
 
   try {
-    const res = await fetch(`https://backend-hdnh.onrender.com/api/events/${eventId}/participants`, { headers });
+    const res = await fetch(`https://backend-f64w.onrender.com/api/events/${eventId}/participants`, { headers });
     const data = await res.json();
     if (!data.ok) throw new Error(data.message || "Failed to load participants");
 
@@ -220,7 +220,7 @@ document.getElementById("editForm").addEventListener("submit", async e => {
 
   showLoader();
   try {
-    const res = await fetch(`https://backend-hdnh.onrender.com/api/participants/${participantId}`, {
+    const res = await fetch(`https://backend-f64w.onrender.com/api/participants/${participantId}`, {
       method: "PUT",
       headers,
       body: JSON.stringify({ name, email, language })
