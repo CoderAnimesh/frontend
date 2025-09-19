@@ -56,7 +56,7 @@
         if(!confirm("Are you sure you want to delete this message?")) return;
         showLoader();
         try {
-          const res = await fetch(`https://backend-f64w.onrender.com/contacts/${id}`, {
+          const res = await fetch(`https://backend-960i.onrender.com/contacts/${id}`, {
             method: "DELETE",
             headers
           });
@@ -71,7 +71,7 @@
       async function loadContacts(){
         showLoader();
         try {
-          const res = await fetch("https://backend-f64w.onrender.com/contacts", { headers });
+          const res = await fetch("https://backend-960i.onrender.com/contacts", { headers });
           const data = await res.json();
           const container = document.getElementById("contactContainer");
           container.innerHTML="";

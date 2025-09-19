@@ -165,7 +165,7 @@
   async function fetchEvents(){
     showLoader();
     try {
-      const res = await fetch("https://backend-f64w.onrender.com/api/events", { headers });
+      const res = await fetch("https://backend-960i.onrender.com/api/events", { headers });
       const data = await res.json();
       if(!data.ok) return alert("Failed to load events");
 
@@ -204,7 +204,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
   if( amount > 300) return msgEl.textContent="Entry amount is too High";
 
 
-  const {res,data} = await callApi("https://backend-f64w.onrender.com/api/events",{
+  const {res,data} = await callApi("https://backend-960i.onrender.com/api/events",{
     method:"POST",
     headers,
     body: JSON.stringify({
@@ -229,7 +229,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     const eventId=document.getElementById("eventsSelect").value;
     if(!eventId) return alert("Select event");
     if(!confirm("Delete this event & all participants?")) return;
-    const {res,data}=await callApi(`https://backend-f64w.onrender.com/api/events/${eventId}`,{ method:"DELETE", headers });
+    const {res,data}=await callApi(`https://backend-960i.onrender.com/api/events/${eventId}`,{ method:"DELETE", headers });
     if(!res.ok||!data.ok) return alert(data.message||"Failed");
     alert("Event deleted with participants");
     await fetchEvents();
@@ -241,7 +241,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     const eventId=document.getElementById("eventsSelect").value;
     if(!eventId) return alert("Select event");
 
-    const {res,data}=await callApi(`https://backend-f64w.onrender.com/api/events/${eventId}/participants`,{ headers });
+    const {res,data}=await callApi(`https://backend-960i.onrender.com/api/events/${eventId}/participants`,{ headers });
     if(!res.ok||!data.ok) return alert(data.message||"Failed");
 
     const container=document.getElementById("participantsContainer"); container.innerHTML="";
@@ -264,7 +264,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     document.querySelectorAll(".allocBtn").forEach(btn=>{
       btn.addEventListener("click", async e=>{
         const id=e.target.dataset.id;
-        const {res,data}=await callApi("https://backend-f64w.onrender.com/api/organizer/allocate",{ method:"POST", headers, body:JSON.stringify({participantId:Number(id)}) });
+        const {res,data}=await callApi("https://backend-960i.onrender.com/api/organizer/allocate",{ method:"POST", headers, body:JSON.stringify({participantId:Number(id)}) });
         if(!res.ok||!data.ok) return alert(data.message||"Failed");
         alert("PC allocated: "+data.pc);
         document.getElementById("loadParticipants").click();
@@ -276,7 +276,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
       btn.addEventListener("click", async e=>{
         const id=e.target.dataset.id;
         if(!confirm("Delete this participant?")) return;
-        const {res,data}=await callApi(`https://backend-f64w.onrender.com/api/participants/${id}`,{ method:"DELETE", headers });
+        const {res,data}=await callApi(`https://backend-960i.onrender.com/api/participants/${id}`,{ method:"DELETE", headers });
         if(!res.ok||!data.ok) return alert(data.message||"Failed");
         alert("Participant deleted");
         document.getElementById("loadParticipants").click();
@@ -297,7 +297,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
       preferredLanguage:document.getElementById("pLang").value.trim()
     };
     const msg=document.getElementById("addMsg"); msg.textContent="";
-    const {res,data}=await callApi("https://backend-f64w.onrender.com/api/organizer/participant",{ method:"POST", headers, body:JSON.stringify(body) });
+    const {res,data}=await callApi("https://backend-960i.onrender.com/api/organizer/participant",{ method:"POST", headers, body:JSON.stringify(body) });
     if(!res.ok||!data.ok){ msg.textContent=data.message||"Failed"; return; }
     msg.textContent="Participant added. Code: "+data.participant.code;
   });
@@ -315,7 +315,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     if(!body.name||!body.email||!body.phone||!body.username||!body.password){ msg.textContent="All fields required"; return; }
     if(body.username.length!==6){ msg.textContent="Username must be 6 chars"; return; }
 
-    const {res,data}=await callApi("https://backend-f64w.onrender.com/api/organizer/volunteer",{ method:"POST", headers, body:JSON.stringify(body) });
+    const {res,data}=await callApi("https://backend-960i.onrender.com/api/organizer/volunteer",{ method:"POST", headers, body:JSON.stringify(body) });
     if(!res.ok||!data.ok){ msg.textContent=data.message||"Failed"; return; }
     msg.textContent="Volunteer added successfully";
   });
@@ -330,7 +330,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     verifyMsg.textContent="";
     if(!code||!eventId){ verifyMsg.textContent="Enter code & select event"; return; }
 
-    const {res,data}=await callApi("https://backend-f64w.onrender.com/api/organizer/verify-allocate",{ method:"POST", headers, body:JSON.stringify({ code, eventId:Number(eventId) }) });
+    const {res,data}=await callApi("https://backend-960i.onrender.com/api/organizer/verify-allocate",{ method:"POST", headers, body:JSON.stringify({ code, eventId:Number(eventId) }) });
     if(!res.ok||!data.ok){ verifyMsg.textContent=data.message||"Failed"; return; }
     verifyMsg.textContent="PC allocated successfully: "+data.pc;
     verifyCodeEl.value="";
@@ -355,7 +355,7 @@ document.getElementById("createEvent").addEventListener("click", async ()=>{
     return;
   }
 
-  const {res,data} = await callApi("https://backend-f64w.onrender.com/api/admin/organizer",{
+  const {res,data} = await callApi("https://backend-960i.onrender.com/api/admin/organizer",{
     method:"POST",
     headers,
     body: JSON.stringify(body)
@@ -381,7 +381,7 @@ document.getElementById("galleryUpload").addEventListener("change", async (e) =>
 
   showLoader();
   try {
-    const res = await fetch(`https://backend-f64w.onrender.com/api/organizer/gallery/${eventId}`, {
+    const res = await fetch(`https://backend-960i.onrender.com/api/organizer/gallery/${eventId}`, {
       method: "POST",
       headers: {
         Authorization: "Bearer " + techathon_token // ⬅️ keep token for auth
