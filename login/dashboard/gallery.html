@@ -99,7 +99,7 @@
     async function loadEvents() {
       showLoader();
       try {
-        const res = await fetch("https://backend-960i.onrender.com/api/events", { headers });
+        const res = await fetch("https://backend-5mar.onrender.com/api/events", { headers });
         const data = await res.json();
         const select = document.getElementById("eventSelect");
         select.innerHTML = "";
@@ -188,7 +188,7 @@
 
       showLoader();
       try {
-        const res = await fetch(`https://backend-960i.onrender.com/api/organizer/gallery/${eventId}`, {
+        const res = await fetch(`https://backend-5mar.onrender.com/api/organizer/gallery/${eventId}`, {
           method: "POST",
           headers: { Authorization: "Bearer " + token },
           body: formData
