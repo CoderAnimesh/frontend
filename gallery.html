@@ -109,7 +109,7 @@
       // Load events (no images by default)
       try {
         showLoader();
-        const evRes = await fetch("https://backend-5mar.onrender.com/api/events");
+        const evRes = await fetch("https://backend-u3ph.onrender.com/api/events");
         const evData = await evRes.json();
         hideLoader();
 
@@ -150,7 +150,7 @@ if(evData.events && evData.events.length > 0){
         }
 
         try {
-          const res = await fetch(`https://backend-5mar.onrender.com/api/gallery/${eventId}`);
+          const res = await fetch(`https://backend-u3ph.onrender.com/api/gallery/${eventId}`);
           const data = await res.json();
           hideLoader();
 
@@ -170,7 +170,7 @@ if(evData.events && evData.events.length > 0){
             const div = document.createElement("div");
             div.className = "gallery-item rounded-xl overflow-hidden shadow-lg bg-gray-800";
             const imgPath = img.image_path.startsWith("/gallery/") ? img.image_path : `${img.image_path}`;
-            const imgUrl = `https://backend-5mar.onrender.com${imgPath}`;
+            const imgUrl = `https://backend-u3ph.onrender.com${imgPath}`;
             div.innerHTML = `
               <a href="${imgUrl}" class="glightbox" data-title="${img.description || 'No description'}">
                 <img src="${imgUrl}" class="w-full h-64 object-cover transition-transform duration-500"/>

@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showLoader();
 
       // step 1: check email
-      const checkRes = await fetch("https://backend-5mar.onrender.com/api/check-email", {
+      const checkRes = await fetch("https://backend-u3ph.onrender.com/api/check-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, eventId })
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // step 2: send OTP only if check passed
-      const otpRes = await fetch(`https://backend-5mar.onrender.com/api/otp/${eventId}/send`, {
+      const otpRes = await fetch(`https://backend-u3ph.onrender.com/api/otp/${eventId}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name })
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       showLoader();
-      const res = await fetch(`https://backend-5mar.onrender.com/api/otp/${eventId}/verify`, {
+      const res = await fetch(`https://backend-u3ph.onrender.com/api/otp/${eventId}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp })
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       showLoader();
-      const res = await fetch("https://backend-5mar.onrender.com/api/participants/enroll", {
+      const res = await fetch("https://backend-u3ph.onrender.com/api/participants/enroll", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
