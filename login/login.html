@@ -3,54 +3,81 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quantam Quirks — Login</title>
+  <title>Quantum Quirks — Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 to-indigo-900 text-white antialiased">
-  <!-- Loader Overlay -->
-  <div id="loader" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+  
+  <div id="loader" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[100]">
     <div class="w-16 h-16 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
   </div>
 
   <div class="min-h-screen flex items-center justify-center p-6">
     <div class="relative w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- left hero -->
+      
       <div class="p-8 rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10 overflow-hidden">
-        <div id="hero" class="w-full h-64 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-xl">
-          <img style="width: 390px;height: 275px;border-radius: 5px;" src="../static/login.jpg" alt="">
+        <div id="hero" class="w-full h-64 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-xl overflow-hidden">
+          <img style="width: 100%; height: 100%; object-fit: cover;" src="../static/login.jpg" alt="Login Banner">
         </div>
         <h2 class="mt-6 text-3xl font-extrabold gap-10">Welcome to <span class="text-indigo-300">Quantum Quirks</span></h2>
         <p class="mt-2 text-slate-300 ">Login as Organizer (8 chars) or Volunteer (6 chars)</p>
       </div>
 
-      <!-- right form -->
-      <div class="p-8 rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10">
+      <div class="p-8 rounded-3xl bg-white/5 backdrop-blur-lg border border-white/10 relative">
         <form id="loginForm" class="space-y-4">
           <label class="block text-sm text-slate-300">Username / Volunteer ID</label>
-          <input id="username" class="w-full p-3 rounded-md bg-white/6 border border-white/8 outline-none text-black" placeholder="8-char organizer or 6-char volunteer" />
+          <input id="username" class="w-full p-3 rounded-md bg-white border border-white/10 outline-none text-black" placeholder="8-char organizer or 6-char volunteer" />
+          
           <label class="block text-sm text-slate-300">Password</label>
-          <input id="password" type="password" class="w-full p-3 rounded-md bg-white/6 border border-white/8 outline-none text-black" placeholder="Password" />
+          <input id="password" type="password" class="w-full p-3 rounded-md bg-white border border-white/10 outline-none text-black" placeholder="Password" />
+          
           <div class="flex items-center justify-between">
             <div class="text-sm text-slate-400">Role: <span id="roleText" class="font-semibold">—</span></div>
-            <button type="submit" class="px-5 py-2 bg-indigo-500 rounded-md">Login</button>
+            <button type="submit" class="px-5 py-2 bg-indigo-500 hover:bg-indigo-600 transition rounded-md font-bold">Login</button>
           </div>
-          <div id="msg" class="text-sm text-rose-300"></div>
+          <div id="msg" class="text-sm text-rose-300 min-h-[20px]"></div>
         </form>
+
+        <div class="mt-8 pt-4 border-t border-white/10 text-center">
+          <button id="openForgotModal" class="text-xs text-indigo-300 hover:text-indigo-100 underline transition-all">
+            Forgot Password?
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgotModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+    <div class="bg-slate-800 border border-white/20 p-8 rounded-3xl w-full max-w-md shadow-2xl">
+      <h3 class="text-xl font-bold text-indigo-300 mb-2">Reset Security Access</h3>
+      <p class="text-slate-400 text-sm mb-6">Enter your Username or Mobile Number. A one-time link will be dispatched to your email.</p>
+      
+      <div class="space-y-4">
+        <input id="forgotInput" class="w-full p-3 rounded-md bg-slate-900 border border-white/10 outline-none text-white focus:border-indigo-500" placeholder="Username or Mobile No." />
+        <div id="forgotMsg" class="text-xs min-h-[1.25rem] font-medium"></div>
+        
+        <div class="flex gap-3">
+          <button id="closeForgotModal" class="flex-1 py-2 bg-slate-700 rounded-md hover:bg-slate-600 transition font-semibold">Cancel</button>
+          <button id="sendResetLink" class="flex-1 py-2 bg-indigo-500 rounded-md hover:bg-indigo-400 transition font-bold shadow-lg">Send Link</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // small animation
+    // GSAP Animations
     gsap.to("#hero", { y: -10, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to("body", { backgroundPosition: "0% 100%", duration: 8, repeat: -1, yoyo: true });
-
+    
+    // Selectors
     const usernameEl = document.getElementById("username");
     const passwordEl = document.getElementById("password");
     const roleText = document.getElementById("roleText");
     const msg = document.getElementById("msg");
     const loader = document.getElementById("loader");
+    const forgotModal = document.getElementById("forgotModal");
+    const forgotInput = document.getElementById("forgotInput");
+    const forgotMsg = document.getElementById("forgotMsg");
 
     function showLoader() { loader.classList.remove("hidden"); }
     function hideLoader() { loader.classList.add("hidden"); }
@@ -67,6 +94,7 @@
       msg.textContent = "";
     });
 
+    // Login Submission
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       msg.textContent = "";
@@ -75,37 +103,78 @@
       const role = roleFromUsername(username);
 
       if (role === "Unknown" || role === "—") { 
-        msg.textContent = "Username length must be 8 (organizer) or 6 (volunteer)"; 
+        msg.textContent = "Username must be 8 chars (Org) or 6 chars (Vol)"; 
         return; 
       }
 
       try {
-        showLoader(); // show loader when login starts
-
+        showLoader();
         const endpoint = role === "Organizer" ? "/api/organizer/login" : "/api/volunteer/login";
         const body = role === "Organizer" ? { username, password } : { volId: username, password };
-        const res = await fetch("https://backend-u3ph.onrender.com" + endpoint, {
+        
+        const res = await fetch("http://localhost:5000" + endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
         const data = await res.json();
-        hideLoader(); // hide loader when response comes
+        hideLoader();
 
         if (!res.ok || !data.ok) {
           msg.textContent = data.message || "Login failed";
           return;
         }
-        // store token & redirect
         localStorage.setItem("techathon_token", data.token);
-        if (role === "Organizer") window.location.href = "dashboard/orgDashboard.html";
-        else window.location.href = "dashboard/voltDashboard.html";
+        window.location.href = role === "Organizer" ? "dashboard/orgDashboard.html" : "dashboard/voltDashboard.html";
       } catch (err) {
         hideLoader();
-        console.error(err);
-        msg.textContent = "Server/network error";
+        msg.textContent = "Server connection error";
       }
     });
+
+    // --- FORGOT PASSWORD LOGIC ---
+    document.getElementById("openForgotModal").onclick = () => {
+        forgotModal.classList.remove("hidden");
+        forgotMsg.textContent = "";
+        forgotInput.value = "";
+    };
+
+    document.getElementById("closeForgotModal").onclick = () => {
+        forgotModal.classList.add("hidden");
+    };
+
+    document.getElementById("sendResetLink").onclick = async () => {
+      const identifier = forgotInput.value.trim();
+      if(!identifier) {
+        forgotMsg.className = "text-xs text-rose-400";
+        forgotMsg.textContent = "Identifier required (Username/Mobile).";
+        return;
+      }
+
+      showLoader();
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/request-forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier })
+        });
+        const data = await res.json();
+        hideLoader();
+
+        if(data.ok) {
+          forgotMsg.className = "text-xs text-emerald-400";
+          forgotMsg.textContent = "✅ Link dispatched! Verify your inbox.";
+          setTimeout(() => forgotModal.classList.add("hidden"), 3000);
+        } else {
+          forgotMsg.className = "text-xs text-rose-400";
+          forgotMsg.textContent = "❌ " + data.message;
+        }
+      } catch (err) {
+        hideLoader();
+        forgotMsg.className = "text-xs text-rose-400";
+        forgotMsg.textContent = "System offline. Try later.";
+      }
+    };
   </script>
 </body>
 </html>

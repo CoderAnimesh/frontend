@@ -3,125 +3,648 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quantam Quirks Enrollment</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-  <link rel="stylesheet" href="enroll.css">
+  <title>Quantum Quirks | Secure Enrollment</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --secondary: #7b2cbf;
+      --success: #00ff88;
+      --dark: #050505;
+      --glass: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(123, 44, 191, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.3) 0%, transparent 40%);
+      z-index: -1;
+      animation: pulseBg 10s infinite alternate;
+    }
+
+    @keyframes pulseBg {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.1); }
+    }
+
+    /* Main Container */
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--glass);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      margin: 20px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Decoration Line */
+    .container::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(to right, #fff, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    }
+
+    .note {
+      background: rgba(255, 152, 0, 0.1);
+      border-left: 3px solid #ff9800;
+      padding: 12px;
+      font-size: 0.9rem;
+      color: #ffcc80;
+      margin-bottom: 25px;
+      border-radius: 4px;
+    }
+
+    /* Form Styling */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: #0a0a0a; /* Matches somewhat with glass bg context */
+      padding: 0 5px;
+      font-size: 0.8rem;
+      color: var(--primary);
+      z-index: 2;
+      border-radius: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      transition: 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    select option {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    /* Email & OTP Section */
+    .otp-wrapper {
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px dashed var(--primary);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #fff;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      color: #fff;
+      font-size: 1.2rem;
+      padding: 15px;
+      margin-top: 10px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .btn-submit.active {
+      opacity: 1;
+      pointer-events: all;
+      box-shadow: 0 0 30px rgba(123, 44, 191, 0.5);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Loader */
+    #loader {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 9999;
+      justify-content: center; align-items: center;
+      flex-direction: column;
+    }
+    
+    .scanner {
+      width: 100px; height: 100px;
+      border: 4px solid var(--primary);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+      margin-top: 20px;
+      font-family: 'Orbitron', sans-serif;
+      color: var(--primary);
+      letter-spacing: 2px;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes blink { 50% { opacity: 0.5; } }
+
+    /* Payment Modal */
+    #paymentModal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 10000;
+      justify-content: center; align-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .payment-box {
+      background: #111;
+      border: 1px solid var(--primary);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
+      animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .qr-frame {
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 200px; height: 200px;
+    }
+    .qr-frame img { width: 100%; height: 100%; }
+
+    .amount-tag {
+      font-size: 2rem;
+      color: var(--success);
+      font-family: 'Orbitron', sans-serif;
+      margin: 10px 0;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full-width { grid-column: span 1; }
+      .container { padding: 20px; margin: 10px; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
 </head>
 <body>
+
+  <div id="loader">
+    <div class="scanner"></div>
+    <div class="loading-text">PROCESSING DATA...</div>
+  </div>
+
   <div class="container">
-    <h1>Quantam Quirks Enrollment Form</h1>
-
+    <h1>Quantum Enrollment</h1>
+    
     <form id="enrollForm">
-      <!-- Student Details -->
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input type="text" id="name" name="name" required placeholder="Enter your full name">
-      </div>
-      <div class="form-group">
-        <label for="Batch">Your Batch</label>
-        <select id="batch" name="Batch" required>
-          <option value="" disabled selected>Select Your Batch</option>
-          <option value="BCA">BCA</option>
-          <option value="MCA">MCA</option>
-          <option value="BCA DS">BCA DS</option>
-          <option value="BVoc.">BVoc.</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="Semester">Select Semester</label>
-        <select id="semester" name="Batch" required>
-          <option value="" disabled selected>Select Semester</option>
-          <option value="Sem 1">Semester I</option>
-          <option value="Sem 2">Semester II</option>
-          <option value="Sem 3">Semester III</option>
-          <option value="Sem 4">Semester IV</option>
-          <option value="Sem 5">Semester V</option>
-          <option value="Sem 6">Semester VI</option>
-          
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="father">Father's Name</label>
-        <input type="text" id="father" name="father" required placeholder="Enter father's name">
-      </div>
+      <input type="hidden" id="eventId">
 
-      <div class="form-group">
-        <label for="mother">Mother's Name</label>
-        <input type="text" id="mother" name="mother" required placeholder="Enter mother's name">
-      </div>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="name">FULL NAME</label>
+          <input type="text" id="name" required placeholder="Ex: Animesh Singh">
+        </div>
 
-      <div class="form-group">
-        <label for="gender">Gender</label>
-        <select id="gender" name="gender" required>
-          <option value="" disabled selected>Select gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="batch">BATCH</label>
+          <select id="batch" required>
+            <option value="" disabled selected>Select Batch</option>
+            <option value="BCA">BCA</option>
+            <option value="MCA">MCA</option>
+            <option value="BCA-DS">BCA-DS</option>
+            <option value="BVoc">BVoc</option>
+          </select>
+        </div>
 
-      <!-- Email & OTP -->
-      <p class="note">⚠️ Please enter your correct email. Confirmation will be sent there!</p>
+        <div class="form-group">
+          <label for="semester">SEMESTER</label>
+          <select id="semester" required>
+            <option value="" disabled selected>Select Sem</option>
+            <option value="Sem 1">Sem I</option>
+            <option value="Sem 2">Sem II</option>
+            <option value="Sem 3">Sem III</option>
+            <option value="Sem 4">Sem IV</option>
+            <option value="Sem 5">Sem V</option>
+            <option value="Sem 6">Sem VI</option>
+          </select>
+        </div>
 
-      <div class="form-group email-group">
-        <label for="email">Email Address</label>
-        <div class="email-box">
-          <input type="email" id="email" name="email" required placeholder="Enter your email">
-          <button type="button" id="sendOtpBtn">Send OTP</button>
+        <div class="form-group">
+          <label for="father">FATHER'S NAME</label>
+          <input type="text" id="father" required>
+        </div>
+
+        <div class="form-group">
+          <label for="mother">MOTHER'S NAME</label>
+          <input type="text" id="mother" required>
+        </div>
+
+        <div class="form-group">
+          <label for="gender">GENDER</label>
+          <select id="gender" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">PHONE</label>
+          <input type="tel" id="phone" required placeholder="10-digit number">
         </div>
       </div>
 
-      <div class="form-group otp-group" id="otpGroup" style="display: none;">
-        <label for="otp">Enter OTP</label>
-        <input type="text" id="otp" name="otp" placeholder="Enter OTP sent to your email">
-        <button type="button" id="verifyOtpBtn">Verify OTP</button>
+      <div class="form-group full-width" style="margin-top: 20px;">
+        <label for="language">CODING LANGUAGE</label>
+        <select id="language" required>
+          <option value="" disabled selected>Loading Languages...</option>
+          </select>
       </div>
 
-      <!-- Phone & Language -->
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+      <div class="otp-wrapper">
+        <p class="note" style="margin-top:0"><i class="fa-solid fa-triangle-exclamation"></i> Verification Required</p>
+        
+        <div class="form-group" style="margin-bottom:15px;">
+          <label for="email">EMAIL ADDRESS</label>
+          <div class="input-group">
+            <input type="email" id="email" required placeholder="student@example.com">
+            <button type="button" id="sendOtpBtn" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+
+        <div id="otpGroup" style="display: none; animation: slideDown 0.3s ease;">
+          <div class="form-group">
+            <label for="otp">ENTER OTP</label>
+            <div class="input-group">
+              <input type="text" id="otp" placeholder="6-digit code" maxlength="6" style="letter-spacing: 5px; text-align: center;">
+              <button type="button" id="verifyOtpBtn" class="btn btn-primary" style="background: var(--success); color: #000;">VERIFY</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="language">Preferred Coding Language</label>
-        <select id="language" name="language" required>
-          <option value="" disabled selected>Select your coding language</option>
-          <option value="C">C</option>
-          <option value="C++">C++</option>
-          <option value="Java">Java</option>
-          <option value="Python">Python</option>
-        </select>
-      </div>
-      
-
-      
-      <!-- Final action button (CSS unchanged) -->
-<button type="button" class="submit-btn" id="enrollBtn" disabled>Enroll Now</button>
+      <button type="button" id="enrollBtn" class="btn btn-submit">
+        CONFIRM ENROLLMENT <i class="fa-solid fa-rocket ml-2"></i>
+      </button>
 
     </form>
   </div>
-  <!-- Loader Overlay -->
-<div id="loader" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; 
-background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
 
-<div class="wrapper">
-  <div class="circle"></div>
-  <div class="circle"></div>
-  <div class="circle"></div>
-  <div class="shadow"></div>
-  <div class="shadow"></div>
-  <div class="shadow"></div>
-</div>
+  <div id="paymentModal">
+    <div class="payment-box">
+      <h3 style="color: var(--primary); font-family: 'Orbitron'; letter-spacing: 1px;">GATEWAY ACCESS</h3>
+      <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">Event: <span id="payEventName" style="color:white;">-</span></p>
+      
+      <div class="amount-tag">₹<span id="payAmount">0</span></div>
 
-</div>
+      <div class="qr-frame">
+        <img id="upiQrImage" src="" alt="QR Code" />
+      </div>
+      
+      <div class="form-group" style="text-align: left; margin-top: 20px;">
+        <label style="position: relative; top: 0; left: 0; margin-bottom: 5px;">ENTER UTR / TRANS ID</label>
+        <input type="text" id="transactionId" placeholder="12-digit UPI Ref No." maxlength="12" style="border-color: var(--success);">
+      </div>
 
-  
-  <!-- Razorpay script -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      <div class="input-group" style="margin-top: 20px;">
+        <button id="confirmPaymentBtn" class="btn btn-primary" style="width: 100%; background: var(--success);">VERIFY PAYMENT</button>
+        <button onclick="closePaymentModal()" class="btn" style="background: #333; color: #fff;">CANCEL</button>
+      </div>
+    </div>
+  </div>
 
-  <script src="enroll.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-  
+  <script>
+    // --- 🛡️ SECURITY GATEKEEPER ---
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlId = urlParams.get('id');
+      const localId = localStorage.getItem("selectedEventId");
+
+      if (!urlId && (!localId || localId === "undefined" || localId === "null")) {
+        window.location.replace("../view.html"); 
+        throw new Error("Unauthorized Access: Redirecting...");
+      }
+    })();
+
+    document.body.style.display = 'flex'; // Reveal UI
+
+    const API_BASE = "http://localhost:5000"; 
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    let eventId = urlParams.get('id') || localStorage.getItem("selectedEventId");
+    
+    if (eventId) {
+      document.getElementById('eventId').value = eventId;
+      localStorage.setItem("selectedEventId", eventId);
+    }
+
+    // --- VARIABLES ---
+    let isEmailVerified = false;
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+    const enrollBtn = document.getElementById('enrollBtn');
+    const emailInput = document.getElementById('email');
+    const otpGroup = document.getElementById('otpGroup');
+    const loader = document.getElementById('loader');
+
+    const showLoader = () => loader.style.display = 'flex';
+    const hideLoader = () => loader.style.display = 'none';
+
+    // --- 1. FETCH EVENT DETAILS (LANGUAGES) ---
+    async function loadEventData() {
+        try {
+            const res = await fetch(`${API_BASE}/api/events`);
+            const data = await res.json();
+            
+            if(data.ok) {
+                // Find our event
+                const event = data.events.find(e => e.id == eventId);
+                if (event) {
+                    // Update Title
+                    document.querySelector("h1").innerText = `Enroll: ${event.name}`;
+                    
+                    // Update Languages
+                    const langSelect = document.getElementById("language");
+                    langSelect.innerHTML = '<option value="" disabled selected>Preferred Language</option>';
+                    
+                    if (event.allowed_languages) {
+                        const langs = event.allowed_languages.split(',');
+                        langs.forEach(lang => {
+                            const opt = document.createElement("option");
+                            opt.value = lang.trim();
+                            opt.textContent = lang.trim();
+                            langSelect.appendChild(opt);
+                        });
+                    } else {
+                        // Fallback if no languages defined
+                        ["C", "C++", "Java", "Python"].forEach(lang => {
+                            const opt = document.createElement("option");
+                            opt.value = lang; opt.textContent = lang;
+                            langSelect.appendChild(opt);
+                        });
+                    }
+                }
+            }
+        } catch (e) { console.error("Failed to load event data", e); }
+    }
+    
+    // Call immediately
+    loadEventData();
+
+
+    // --- 2. OTP LOGIC ---
+    sendOtpBtn.addEventListener('click', async () => {
+      const email = emailInput.value;
+      const name = document.getElementById('name').value;
+      if (!email || !email.includes('@')) return alert("Enter valid email");
+
+      showLoader();
+      try {
+        const res = await fetch(`${API_BASE}/api/otp/${eventId}/send`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          alert("📨 OTP Sent to inbox!");
+          otpGroup.style.display = 'block';
+          sendOtpBtn.disabled = true;
+          sendOtpBtn.style.opacity = "0.5";
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) { alert("Server Connection Error"); }
+      finally { hideLoader(); }
+    });
+
+    verifyOtpBtn.addEventListener('click', async () => {
+      const email = emailInput.value;
+      const otp = document.getElementById('otp').value;
+      
+      showLoader();
+      try {
+        const res = await fetch(`${API_BASE}/api/otp/${eventId}/verify`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          alert("✅ Verified Successfully");
+          isEmailVerified = true;
+          otpGroup.innerHTML = '<div style="color: var(--success); text-align: center; font-weight: bold; padding: 10px;">EMAIL VERIFIED <i class="fa-solid fa-check-circle"></i></div>';
+          emailInput.disabled = true;
+          enrollBtn.classList.add('active'); // Enable main button
+        } else {
+          alert("❌ Invalid OTP");
+        }
+      } catch (e) { alert("Verification Error"); }
+      finally { hideLoader(); }
+    });
+
+    // --- 3. ENROLL LOGIC ---
+    enrollBtn.addEventListener('click', async () => {
+      if (!isEmailVerified) return alert("Please verify your email first.");
+
+      const formData = {
+        eventId: parseInt(eventId),
+        name: document.getElementById('name').value,
+        batch: document.getElementById('batch').value,
+        semester: document.getElementById('semester').value,
+        fatherName: document.getElementById('father').value,
+        motherName: document.getElementById('mother').value,
+        gender: document.getElementById('gender').value,
+        email: emailInput.value,
+        phone: document.getElementById('phone').value,
+        preferredLanguage: document.getElementById('language').value
+      };
+
+      if(Object.values(formData).some(x => !x)) return alert("Please fill all fields.");
+
+      showLoader();
+
+      try {
+        // Step 1: Pre-Enroll Check
+        const res = await fetch(`${API_BASE}/api/participants/pre-enroll`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, eventId: formData.eventId })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          if (data.requiresPayment) {
+            showPaymentModal(data.amount, data.eventName, data.upiId);
+          } else {
+            finalizeEnrollment(formData, null);
+          }
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) { console.error(e); alert("System Error"); }
+      finally { 
+        if(document.getElementById('paymentModal').style.display !== 'flex') hideLoader(); 
+      }
+    });
+
+    // --- 4. PAYMENT & FINALIZATION ---
+    function showPaymentModal(amount, eventName, upiId) {
+      const modal = document.getElementById('paymentModal');
+      document.getElementById('payAmount').innerText = amount;
+      document.getElementById('payEventName').innerText = eventName;
+      
+      const upiLink = `upi://pay?pa=${upiId}&pn=QuantumQuirks&am=${amount}&cu=INR`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
+      
+      document.getElementById('upiQrImage').src = qrApiUrl;
+      hideLoader();
+      modal.style.display = 'flex';  
+    }
+
+    function closePaymentModal() {
+      document.getElementById('paymentModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmPaymentBtn').addEventListener('click', () => {
+      const utr = document.getElementById('transactionId').value.trim();
+      if (!utr || utr.length < 8) return alert("Enter valid 12-digit UTR");
+
+      const formData = {
+        eventId: parseInt(eventId),
+        name: document.getElementById('name').value,
+        batch: document.getElementById('batch').value,
+        semester: document.getElementById('semester').value,
+        fatherName: document.getElementById('father').value,
+        motherName: document.getElementById('mother').value,
+        gender: document.getElementById('gender').value,
+        email: emailInput.value,
+        phone: document.getElementById('phone').value,
+        preferredLanguage: document.getElementById('language').value
+      };
+
+      finalizeEnrollment(formData, utr);
+    });
+
+    async function finalizeEnrollment(formData, utr) {
+      formData.transactionId = utr;
+      showLoader();
+      document.getElementById('paymentModal').style.display = 'none';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/participants/confirm-enroll`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        const result = await res.json();
+
+        if (result.ok) {
+          alert("✅ SUCCESS! Ticket sent to your email.");
+          window.location.href = '../index.html';
+        } else {
+          alert("Registration Failed: " + result.message);
+          if (utr) document.getElementById('paymentModal').style.display = 'flex';
+        }
+      } catch (e) { alert("Network Error"); }
+      finally { hideLoader(); }
+    }
+
+  </script>
 </body>
 </html>

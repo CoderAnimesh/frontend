@@ -1,136 +1,577 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Volunteer Panel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- QR Scanner library -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Volunteer Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .modal-backdrop { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
+    </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-800 to-indigo-900 text-white p-6">
-  <div class="max-w-2xl mx-auto">
-    <header class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Volunteer Panel</h1>
-      <button id="logout" class="px-3 py-2 bg-rose-500 rounded">Logout</button>
-    </header>
+<body class="min-h-screen bg-slate-900 text-white font-sans">
 
-    <!-- Manual Code Input -->
-    <div class="p-6 bg-white/5 rounded-lg mb-6">
-      <h3 class="font-semibold mb-2">Verify Participant Code & allocate PC</h3>
-      <input id="code" placeholder="Enter participant code (TECH1234)" class="w-full p-3 rounded bg-white/6 mb-3 text-black"/>
-      <button id="verifyBtn" class="px-4 py-2 bg-indigo-500 rounded">Verify & Allocate</button>
+    <div id="statusModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-slate-800 border-2 border-amber-500 p-8 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] transform transition-all">
+            <div class="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-amber-500">
+                <i class="fa-solid fa-user-check text-3xl text-amber-500"></i>
+            </div>
+            <h3 class="text-amber-500 font-black tracking-widest text-sm uppercase mb-1">Already Verified</h3>
+            <h2 id="modalName" class="text-2xl font-bold text-white mb-4 italic">Candidate Name</h2>
+            <div class="bg-slate-900 rounded-2xl py-4 border border-white/5">
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Assigned Station</p>
+                <h1 id="modalPc" class="text-5xl font-black text-white">PC-00</h1>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-4 leading-tight">This candidate has already been processed.<br>No duplicate email was sent.</p>
+            <button id="closeModal" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-black transition-all shadow-lg active:scale-95">DISMISS</button>
+        </div>
+    </div>
+
+    <nav class="border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 bg-slate-900/80 backdrop-blur-md z-50">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center font-bold text-xl" id="volInitials">V</div>
+            <div>
+                <p class="text-xs text-slate-400 leading-none">Welcome back,</p>
+                <h2 class="text-lg font-bold text-indigo-400" id="volNameDisplay">Volunteer</h2>
+            </div>
+        </div>
+        <button id="logout" class="px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded-lg transition-all font-bold text-sm border border-rose-600/30">
+            <i class="fa-solid fa-power-off mr-2"></i> Logout
+        </button>
+    </nav>
+
+    <div class="p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-5 space-y-6">
+            <div class="glass p-6 rounded-3xl">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-indigo-500"></i> Entry Protocol
+                </h3>
+                
+                <div id="qr-reader" class="rounded-2xl overflow-hidden border border-white/10 mb-4 bg-black/20"></div>
+                
+                <div class="flex gap-2">
+                    <button id="startScan" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold shadow-lg transition-all">
+                        <i class="fa-solid fa-camera mr-2"></i> Start Scanner
+                    </button>
+                    <button id="stopScan" class="hidden px-6 py-3 bg-slate-700 rounded-xl font-bold">Stop</button>
+                </div>
+
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-slate-900 px-2 text-slate-500 tracking-widest">OR MANUAL ENTRY</span></div>
+                </div>
+
+                <input id="code" placeholder="Enter Code (TECHXXXX)" class="w-full p-4 rounded-xl bg-slate-950 border border-white/10 mb-3 text-white focus:border-indigo-500 outline-none uppercase font-mono tracking-widest"/>
+                <button id="verifyBtn" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-black shadow-lg transition-all active:scale-[0.98]">
+                    VERIFY & ALLOCATE
+                </button>
+
+                <div id="loader" class="hidden mt-4 flex justify-center"><div class="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div></div>
+                <div id="result" class="mt-4"></div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-7 space-y-6">
+            <div class="glass p-6 rounded-3xl h-[calc(100vh-140px)] flex flex-col">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-400">
+                    <i class="fa-solid fa-list-check"></i> Allocation Registry
+                </h3>
+
+                <div class="relative mb-4">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input id="searchInput" type="text" placeholder="Search records..." class="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-blue-500 transition-all text-sm"/>
+                </div>
+
+                <div id="allocList" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                    <div class="text-center py-20 text-slate-500 italic font-mono">Syncing records...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (async ()=>{
+      const token = localStorage.getItem("techathon_token");
+      if (!token) { location.href = "../login.html"; return; }
       
-      <!-- Loader -->
-      <div id="loader" class="hidden mt-4 flex justify-center">
-        <div class="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-      </div>
+      const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
+      const API_BASE = "http://localhost:5000";
 
-      <!-- Result -->
-      <div id="result" class="mt-3"></div>
-    </div>
+      // Modal Elements
+      const statusModal = document.getElementById("statusModal");
+      const modalName = document.getElementById("modalName");
+      const modalPc = document.getElementById("modalPc");
+      const closeModal = document.getElementById("closeModal");
 
-    <!-- QR Code Scanner -->
-    <div class="p-6 bg-white/5 rounded-lg">
-      <h3 class="font-semibold mb-2">Scan Participant QR</h3>
-      <button id="startScan" class="px-4 py-2 bg-green-500 rounded">Start Camera & Scan</button>
-      <button id="stopScan" class="hidden px-4 py-2 bg-rose-500 rounded ml-2">Stop</button>
+      closeModal.onclick = () => statusModal.classList.add("hidden");
 
-      <!-- Camera View -->
-      <div id="qr-reader" class="mt-4 hidden"></div>
-    </div>
-  </div>
+      // Logout
+      document.getElementById("logout").addEventListener("click", ()=>{
+        localStorage.removeItem("techathon_token");
+        window.location.replace("../../index.html");
+      });
 
-<script>
-(async ()=>{
-  const token = localStorage.getItem("techathon_token");
-  if (!token) { location.href = "../index.html"; return; }
-  const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
+      // Identity
+      function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e){ return {}; } }
+      const user = parseJwt(token);
+      document.getElementById("volNameDisplay").textContent = user.volId || "Volunteer";
+      document.getElementById("volInitials").textContent = (user.volId || "V").charAt(0).toUpperCase();
 
-  const loader = document.getElementById("loader");
-  const result = document.getElementById("result");
+      let allAllocations = [];
 
-  function showLoader() { loader.classList.remove("hidden"); }
-  function hideLoader() { loader.classList.add("hidden"); }
+      async function fetchAllocations() {
+        try {
+            const res = await fetch(`${API_BASE}/api/volunteer/allocations`, { headers });
+            const data = await res.json();
+            if(data.ok) {
+                allAllocations = data.allocations;
+                renderAllocations(allAllocations);
+            }
+        } catch(e) { console.error("Fetch failed"); }
+      }
 
-  document.getElementById("logout").addEventListener("click", ()=>{
-    localStorage.removeItem("techathon_token");
-    location.href="../login.html";
-  });
-
-  // ---- Manual Verify ----
-  document.getElementById("verifyBtn").addEventListener("click", ()=> {
-    const code = document.getElementById("code").value.trim();
-    if (!code) return alert("Enter code");
-    verifyCode(code);
-  });
-
-  // ---- QR Scanner ----
-  const startBtn = document.getElementById("startScan");
-  const stopBtn = document.getElementById("stopScan");
-  const qrReader = document.getElementById("qr-reader");
-  let scanner;
-
-  startBtn.addEventListener("click", ()=>{
-    qrReader.classList.remove("hidden");
-    startBtn.classList.add("hidden");
-    stopBtn.classList.remove("hidden");
-
-    scanner = new Html5Qrcode("qr-reader");
-    scanner.start(
-      { facingMode: "environment" }, // rear camera
-      { fps: 10, qrbox: 250 },
-      qrCodeMessage => {
-        // Stop scanning once code is detected
-        scanner.stop().then(()=>{
-          qrReader.classList.add("hidden");
-          startBtn.classList.remove("hidden");
-          stopBtn.classList.add("hidden");
+      function renderAllocations(list) {
+        const container = document.getElementById("allocList");
+        container.innerHTML = list.length === 0 ? '<div class="text-center py-10 opacity-30 italic">Registry Empty</div>' : "";
+        
+        list.forEach(a => {
+            const div = document.createElement("div");
+            div.className = "p-4 bg-slate-900/50 border border-white/5 rounded-2xl flex items-center justify-between hover:border-indigo-500/50 transition-all";
+            div.innerHTML = `
+                <div>
+                    <h4 class="font-bold text-white text-sm">${a.name}</h4>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
+                        <i class="fa-solid fa-phone mr-1"></i>${a.phone} | <i class="fa-solid fa-id-badge mr-1"></i>${a.code}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 rounded-lg font-black text-indigo-400 text-lg">PC-${a.pc_number}</div>
+                </div>
+            `;
+            container.appendChild(div);
         });
-        verifyCode(qrCodeMessage);
-      },
-      errorMessage => {
-        // ignore scanning errors
       }
-    ).catch(err=>{
-      alert("Camera start failed: " + err);
-    });
-  });
 
-  stopBtn.addEventListener("click", ()=>{
-    if(scanner){
-      scanner.stop().then(()=>{
-        qrReader.classList.add("hidden");
-        startBtn.classList.remove("hidden");
-        stopBtn.classList.add("hidden");
+      // Search
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+          const val = e.target.value.toLowerCase();
+          const filtered = allAllocations.filter(a => 
+            a.name.toLowerCase().includes(val) || 
+            a.phone.includes(val) || 
+            a.pc_number.toString().includes(val) ||
+            a.code.toLowerCase().includes(val)
+          );
+          renderAllocations(filtered);
       });
-    }
-  });
 
-  // ---- Shared Verify Function ----
-  async function verifyCode(code){
-    showLoader();
-    result.textContent="";
-    try {
-      const res = await fetch("https://backend-u3ph.onrender.com/api/verify-code", { 
-        method:"POST", headers, body: JSON.stringify({ code }) 
-      });
-      const data = await res.json();
-      hideLoader();
-      if (!res.ok || !data.ok) {
-        result.textContent = data.message || "Failed"; 
-        result.className = "mt-3 text-rose-300"; 
-        return;
+      // Scanner
+      const startBtn = document.getElementById("startScan");
+      const stopBtn = document.getElementById("stopScan");
+      const qrReader = document.getElementById("qr-reader");
+      let scanner = new Html5Qrcode("qr-reader");
+
+      startBtn.onclick = () => {
+        qrReader.classList.remove("hidden");
+        startBtn.classList.add("hidden");
+        stopBtn.classList.remove("hidden");
+        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+        (code) => {
+            scanner.stop();
+            qrReader.classList.add("hidden");
+            startBtn.classList.remove("hidden");
+            stopBtn.classList.add("hidden");
+            verifyCode(code);
+        }).catch(err => alert("Camera permission denied"));
+      };
+
+      stopBtn.onclick = () => {
+          scanner.stop().then(() => {
+            qrReader.classList.add("hidden");
+            startBtn.classList.remove("hidden");
+            stopBtn.classList.add("hidden");
+          });
+      };
+
+      async function verifyCode(cleanCode){
+        const resultDiv = document.getElementById("result");
+        const loader = document.getElementById("loader");
+        
+        loader.classList.remove("hidden");
+        resultDiv.innerHTML = ""; 
+        
+        try {
+            const res = await fetch(`${API_BASE}/api/recheck/verify-code`, { 
+                method: "POST", 
+                headers, 
+                body: JSON.stringify({ code: cleanCode.toUpperCase() }) 
+            });
+            
+            const data = await res.json();
+            loader.classList.add("hidden");
+            
+            if(data.ok) {
+                if (data.alreadyAllocated) {
+                    // CENTERED POPUP MODAL (No Email Sent)
+                    modalName.textContent = data.name;
+                    modalPc.textContent = `PC-${data.pc}`;
+                    statusModal.classList.remove("hidden");
+                } else {
+                    // SIDEBAR SUCCESS BADGE (Email Dispatched)
+                    resultDiv.innerHTML = `
+                        <div class="p-4 bg-emerald-500/20 border border-emerald-500 rounded-2xl text-center animate-bounce shadow-lg">
+                            <i class="fa-solid fa-circle-check text-emerald-400 mb-1"></i>
+                            <p class="text-xs font-bold text-emerald-400 uppercase tracking-tighter tracking-widest leading-none">NEW ALLOCATION</p>
+                            <h2 class="text-white font-bold my-1 italic">${data.name}</h2>
+                            <h1 class="text-4xl font-black mt-1 text-white">PC-${data.pc}</h1>
+                            <p class="text-[9px] text-slate-300 mt-2 italic font-medium tracking-tight">Credentials dispatched via Mail.</p>
+                        </div>`;
+                }
+                
+                document.getElementById("code").value = "";
+                // Immediate refresh of registry
+                fetchAllocations();
+
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="p-4 bg-rose-500/20 border border-rose-500 rounded-2xl text-center text-rose-400 font-bold shadow-lg">
+                        <i class="fa-solid fa-circle-xmark mb-1 text-xl"></i><br>
+                        ${data.message || "INVALID CODE"}
+                    </div>`;
+            }
+        } catch (err) {
+            loader.classList.add("hidden");
+            alert("Connection error occurred.");
+        }
       }
-      result.textContent = "✅ Allocated PC #: " + data.pc;
-      result.className = "mt-3 text-green-300";
-    } catch (err) {
-      hideLoader();
-      result.textContent = "🚨 Error: " + err.message;
-      result.className = "mt-3 text-rose-300";
+
+      document.getElementById("verifyBtn").onclick = () => {
+          const val = document.getElementById("code").value;
+          if(val) verifyCode(val);
+      };
+
+      // Initial Load
+      fetchAllocations();
+    })();
+    </script>
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <title>Volunteer Control Center</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/html5-qrcode"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+            ::-webkit-scrollbar { width: 5px; }
+            ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+            .modal-backdrop { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
+        </style>
+    </head>
+    <body class="min-h-screen bg-slate-900 text-white font-sans">
+    
+        <div id="statusModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop">
+            <div class="bg-slate-800 border-2 border-amber-500 p-8 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.3)] transform transition-all">
+                <div class="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-amber-500">
+                    <i class="fa-solid fa-user-check text-3xl text-amber-500"></i>
+                </div>
+                <h3 class="text-amber-500 font-black tracking-widest text-sm uppercase mb-1">Already Verified</h3>
+                <h2 id="modalName" class="text-2xl font-bold text-white mb-4 italic">Candidate Name</h2>
+                <div class="bg-slate-900 rounded-2xl py-4 border border-white/5">
+                    <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Assigned Station</p>
+                    <h1 id="modalPc" class="text-5xl font-black text-white">PC-00</h1>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-4 leading-tight">This candidate has already been processed.<br>No duplicate email was sent.</p>
+                <button id="closeModal" class="mt-6 w-full py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-black transition-all shadow-lg active:scale-95">DISMISS</button>
+            </div>
+        </div>
+    
+        <nav class="border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 bg-slate-900/80 backdrop-blur-md z-50">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center font-bold text-xl" id="volInitials">V</div>
+                <div>
+                    <p class="text-xs text-slate-400 leading-none">Welcome back,</p>
+                    <h2 class="text-lg font-bold text-indigo-400" id="volNameDisplay">Volunteer</h2>
+                </div>
+            </div>
+            <button id="logout" class="px-4 py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded-lg transition-all font-bold text-sm border border-rose-600/30">
+                <i class="fa-solid fa-power-off mr-2"></i> Logout
+            </button>
+        </nav>
+    
+        <div class="p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass p-6 rounded-3xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode text-indigo-500"></i> Entry Protocol
+                    </h3>
+                    
+                    <div id="qr-reader" class="rounded-2xl overflow-hidden border border-white/10 mb-4 bg-black/20"></div>
+                    
+                    <div class="flex gap-2">
+                        <button id="startScan" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold shadow-lg transition-all">
+                            <i class="fa-solid fa-camera mr-2"></i> Start Scanner
+                        </button>
+                        <button id="stopScan" class="hidden px-6 py-3 bg-slate-700 rounded-xl font-bold">Stop</button>
+                    </div>
+    
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-slate-900 px-2 text-slate-500 tracking-widest">OR MANUAL ENTRY</span></div>
+                    </div>
+    
+                    <input id="code" placeholder="Enter Code (TECHXXXX)" class="w-full p-4 rounded-xl bg-slate-950 border border-white/10 mb-3 text-white focus:border-indigo-500 outline-none uppercase font-mono tracking-widest"/>
+                    <button id="verifyBtn" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-black shadow-lg transition-all active:scale-[0.98]">
+                        VERIFY & ALLOCATE
+                    </button>
+    
+                    <div id="loader" class="hidden mt-4 flex justify-center"><div class="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div></div>
+                    <div id="result" class="mt-4"></div>
+                </div>
+            </div>
+    
+            <div class="lg:col-span-7 space-y-6">
+                <div class="glass p-6 rounded-3xl h-[calc(100vh-140px)] flex flex-col">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-400">
+                        <i class="fa-solid fa-list-check"></i> Allocation Registry
+                    </h3>
+    
+                    <div class="relative mb-4">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input id="searchInput" type="text" placeholder="Search records..." class="w-full pl-12 pr-4 py-3 bg-slate-950 border border-white/10 rounded-xl outline-none focus:border-blue-500 transition-all text-sm"/>
+                    </div>
+    
+                    <div id="allocList" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                        <div class="text-center py-20 text-slate-500 italic font-mono">Syncing records...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <script>
+          // --- AUTH GUARD ---
+// This runs instantly. If no token is found, the page content is never shown.
+if (!localStorage.getItem("techathon_token")) {
+    window.location.replace("../../index.html");
+}
+
+// Re-check every time the page is focused (handles the 'Back' button case)
+window.onpageshow = function(event) {
+    if (event.persisted || !localStorage.getItem("techathon_token")) {
+        window.location.replace("../../index.html");
     }
-  }
-})();
-</script>
+};
+        (async ()=>{
+          const token = localStorage.getItem("techathon_token");
+          if (!token) { location.href = "../login.html"; return; }
+          
+          const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
+          const API_BASE = "http://localhost:5000";
+    
+          // Modal Elements
+          const statusModal = document.getElementById("statusModal");
+          const modalName = document.getElementById("modalName");
+          const modalPc = document.getElementById("modalPc");
+          const closeModal = document.getElementById("closeModal");
+    
+          closeModal.onclick = () => statusModal.classList.add("hidden");
+    
+          // Logout
+          document.getElementById("logout").addEventListener("click", ()=>{
+            localStorage.removeItem("techathon_token");
+            window.location.replace("../../index.html");
+          });
+    
+          // Identity
+          function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e){ return {}; } }
+          const user = parseJwt(token);
+          document.getElementById("volNameDisplay").textContent = user.volId || "Volunteer";
+          document.getElementById("volInitials").textContent = (user.volId || "V").charAt(0).toUpperCase();
+    
+          let allAllocations = [];
+    
+          async function fetchAllocations() {
+            try {
+                const res = await fetch(`${API_BASE}/api/volunteer/allocations`, { headers });
+                const data = await res.json();
+                if(data.ok) {
+                    allAllocations = data.allocations;
+                    renderAllocations(allAllocations);
+                }
+            } catch(e) { console.error("Fetch failed"); }
+          }
+    
+          function renderAllocations(list) {
+            const container = document.getElementById("allocList");
+            container.innerHTML = list.length === 0 ? '<div class="text-center py-10 opacity-30 italic">Registry Empty</div>' : "";
+            
+            list.forEach(a => {
+                const div = document.createElement("div");
+                div.className = "p-4 bg-slate-900/50 border border-white/5 rounded-2xl flex items-center justify-between hover:border-indigo-500/50 transition-all";
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-white text-sm">${a.name}</h4>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
+                            <i class="fa-solid fa-phone mr-1"></i>${a.phone} | <i class="fa-solid fa-id-badge mr-1"></i>${a.code}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 rounded-lg font-black text-indigo-400 text-lg">PC-${a.pc_number}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+          }
+    
+          // Search
+          document.getElementById("searchInput").addEventListener("input", (e) => {
+              const val = e.target.value.toLowerCase();
+              const filtered = allAllocations.filter(a => 
+                a.name.toLowerCase().includes(val) || 
+                a.phone.includes(val) || 
+                a.pc_number.toString().includes(val) ||
+                a.code.toLowerCase().includes(val)
+              );
+              renderAllocations(filtered);
+          });
+    
+          // Scanner
+          const startBtn = document.getElementById("startScan");
+          const stopBtn = document.getElementById("stopScan");
+          const qrReader = document.getElementById("qr-reader");
+          let scanner = new Html5Qrcode("qr-reader");
+    
+          startBtn.onclick = () => {
+            qrReader.classList.remove("hidden");
+            startBtn.classList.add("hidden");
+            stopBtn.classList.remove("hidden");
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
+            (code) => {
+                scanner.stop();
+                qrReader.classList.add("hidden");
+                startBtn.classList.remove("hidden");
+                stopBtn.classList.add("hidden");
+                verifyCode(code);
+            }).catch(err => alert("Camera permission denied"));
+          };
+    
+          stopBtn.onclick = () => {
+              scanner.stop().then(() => {
+                qrReader.classList.add("hidden");
+                startBtn.classList.remove("hidden");
+                stopBtn.classList.add("hidden");
+              });
+          };
+    
+          async function verifyCode(cleanCode){
+            const resultDiv = document.getElementById("result");
+            const loader = document.getElementById("loader");
+            
+            loader.classList.remove("hidden");
+            resultDiv.innerHTML = ""; 
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/recheck/verify-code`, { 
+                    method: "POST", 
+                    headers, 
+                    body: JSON.stringify({ code: cleanCode.toUpperCase() }) 
+                });
+                
+                const data = await res.json();
+                loader.classList.add("hidden");
+                
+                if(data.ok) {
+                    if (data.alreadyAllocated) {
+                        // CENTERED POPUP MODAL (No Email Sent)
+                        modalName.textContent = data.name;
+                        modalPc.textContent = `PC-${data.pc}`;
+                        statusModal.classList.remove("hidden");
+                    } else {
+                        // SIDEBAR SUCCESS BADGE (Email Dispatched)
+                        resultDiv.innerHTML = `
+                            <div class="p-4 bg-emerald-500/20 border border-emerald-500 rounded-2xl text-center animate-bounce shadow-lg">
+                                <i class="fa-solid fa-circle-check text-emerald-400 mb-1"></i>
+                                <p class="text-xs font-bold text-emerald-400 uppercase tracking-tighter tracking-widest leading-none">NEW ALLOCATION</p>
+                                <h2 class="text-white font-bold my-1 italic">${data.name}</h2>
+                                <h1 class="text-4xl font-black mt-1 text-white">PC-${data.pc}</h1>
+                                <p class="text-[9px] text-slate-300 mt-2 italic font-medium tracking-tight">Credentials dispatched via Mail.</p>
+                            </div>`;
+                    }
+                    
+                    document.getElementById("code").value = "";
+                    // Immediate refresh of registry
+                    fetchAllocations();
+    
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="p-4 bg-rose-500/20 border border-rose-500 rounded-2xl text-center text-rose-400 font-bold shadow-lg">
+                            <i class="fa-solid fa-circle-xmark mb-1 text-xl"></i><br>
+                            ${data.message || "INVALID CODE"}
+                        </div>`;
+                }
+            } catch (err) {
+                loader.classList.add("hidden");
+                alert("Connection error occurred.");
+            }
+          }
+    
+          document.getElementById("verifyBtn").onclick = () => {
+              const val = document.getElementById("code").value;
+              if(val) verifyCode(val);
+          };
+    
+          // Initial Load
+          fetchAllocations();
+        })();
+        </script>
+        <script>
+          // 1. Prevent moving back from the Home Page
+          (function (global) {
+              if (typeof (global) === "undefined") {
+                  throw new Error("window is undefined");
+              }
+      
+              var _hash = "!";
+              var noBackPlease = function () {
+                  global.location.href += "#";
+      
+                  // small timeout to ensure the hash is applied
+                  global.setTimeout(function () {
+                      global.location.href += "!";
+                  }, 50);
+              };
+      
+              // Every time the user tries to go back, we force them forward to the current page
+              global.onhashchange = function () {
+                  if (global.location.hash !== _hash) {
+                      global.location.hash = _hash;
+                  }
+              };
+      
+              global.onload = function () {
+                  noBackPlease();
+      
+                  // 2. Clear history state on load
+                  if (window.history.state !== null) {
+                      window.history.replaceState(null, null, window.location.href);
+                  }
+      
+                  // 3. Optional: Redirect to login if user clicks back and we detect no token
+                  document.body.onmousemove = function () {
+                      if (!localStorage.getItem("techathon_token") && window.location.hash === "#!") {
+                         // User is logged out and tried to navigate, stay on index.
+                      }
+                  };
+              };
+          })(window);
+      </script>
+    </body>
+    </html>
 </body>
 </html>
