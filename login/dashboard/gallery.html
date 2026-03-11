@@ -124,7 +124,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   
   <script>
-    const API_BASE = "https://backend-ab1p.onrender.com";
+    const API_BASE = "http://localhost:5000";
     const token = localStorage.getItem("techathon_token");
     const loader = document.getElementById("loaderOverlay");
     const loaderText = document.getElementById("loaderText");
@@ -169,21 +169,30 @@
     loadEvents();
 
     // --- Image Upload Logic (Existing) ---
-    document.getElementById("imageInput").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        document.getElementById("cropperArea").classList.remove("hidden");
-        document.getElementById("previewArea").classList.add("hidden");
-        document.getElementById("uploadBtn").disabled = true;
-        if(cropper) cropper.destroy();
-        document.getElementById("cropperImage").src = reader.result;
-        cropper = new Cropper(document.getElementById("cropperImage"), { aspectRatio: 16/9, viewMode: 1, autoCropArea: 1 });
-      };
-      reader.readAsDataURL(file);
-    });
+   // --- Image Upload Logic ---
+document.getElementById("imageInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("cropperArea").classList.remove("hidden");
+    document.getElementById("previewArea").classList.add("hidden");
+    document.getElementById("uploadBtn").disabled = true;
+    if(cropper) cropper.destroy();
+    document.getElementById("cropperImage").src = reader.result;
 
+    // UPDATE THIS SECTION BELOW
+    cropper = new Cropper(document.getElementById("cropperImage"), { 
+      aspectRatio: null, // This allows free cropping (no fixed ratio)
+      viewMode: 1, 
+      autoCropArea: 1,
+      dragMode: 'move', // Optional: allows moving the image
+      responsive: true,
+      restore: false,
+    });
+  };
+  reader.readAsDataURL(file);
+});
     document.getElementById("cropBtn").addEventListener("click", () => {
       if (!cropper) return;
       cropper.getCroppedCanvas({ width: 1280, height: 720 }).toBlob((blob) => {
