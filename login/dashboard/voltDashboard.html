@@ -100,7 +100,7 @@
       if (!token) { location.href = "../login.html"; return; }
       
       const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
-      const API_BASE = "https://backend-ab1p.onrender.com";
+      const API_BASE = "http://localhost:5000";
 
       // Modal Elements
       const statusModal = document.getElementById("statusModal");
@@ -372,7 +372,7 @@ window.onpageshow = function(event) {
           if (!token) { location.href = "../login.html"; return; }
           
           const headers = { "Content-Type":"application/json", Authorization: "Bearer " + token };
-          const API_BASE = "https://backend-ab1p.onrender.com";
+          const API_BASE = "http://localhost:5000";
     
           // Modal Elements
           const statusModal = document.getElementById("statusModal");

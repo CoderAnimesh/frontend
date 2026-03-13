@@ -427,7 +427,7 @@
 
     document.body.style.display = 'flex'; // Reveal UI
 
-    const API_BASE = "https://backend-ab1p.onrender.com"; 
+    const API_BASE = "http://localhost:5000"; 
     
     const urlParams = new URLSearchParams(window.location.search);
     let eventId = urlParams.get('id') || localStorage.getItem("selectedEventId");
