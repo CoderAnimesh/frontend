@@ -115,7 +115,7 @@
     async function fetchEvents() {
       showLoader();
       try {
-        const res = await fetch("http://localhost:5000/api/events", { headers });
+        const res = await fetch("https://backend-ab1p.onrender.com/api/events", { headers });
         const data = await res.json();
         if (data.ok) {
           eventFilter.innerHTML = data.events.map(ev => 
@@ -131,7 +131,7 @@
       showLoader();
       tbody.innerHTML = "";
       try {
-        const res = await fetch(`http://localhost:5000/api/events/${eventId}/participants`, { headers });
+        const res = await fetch(`https://backend-ab1p.onrender.com/api/events/${eventId}/participants`, { headers });
         const data = await res.json();
         
         if (!data.participants || data.participants.length === 0) {
@@ -181,7 +181,7 @@
 
       showLoader();
       try {
-        const res = await fetch(`http://localhost:5000/api/participants/${id}`, {
+        const res = await fetch(`https://backend-ab1p.onrender.com/api/participants/${id}`, {
           method: "PUT", headers, body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -198,7 +198,7 @@
       if (!confirm("Are you sure you want to delete this candidate? This action cannot be undone.")) return;
       showLoader();
       try {
-        const res = await fetch(`http://localhost:5000/api/participants/${id}`, { method: "DELETE", headers });
+        const res = await fetch(`https://backend-ab1p.onrender.com/api/participants/${id}`, { method: "DELETE", headers });
         const data = await res.json();
         if (data.ok) { loadCandidates(); } else { alert("Delete failed"); }
       } catch (err) { alert("Error deleting user"); } finally { hideLoader(); }
